@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import openai
@@ -7,16 +8,17 @@ import json
 
 app = FastAPI(title="Comment Sentiment Analysis API")
 
-# Request model
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class CommentRequest(BaseModel):
     comment: str
 
-# Response model
-class SentimentResponse(BaseModel):
-    sentiment: str
-    rating: int
-
-# JSON schema for structured output
 SENTIMENT_SCHEMA = {
     "type": "json_schema",
     "json_schema": {
@@ -50,58 +52,71 @@ async def analyze_comment(request: CommentRequest):
     if not request.comment or not request.comment.strip():
         raise HTTPException(status_code=400, detail="Comment cannot be empty")
 
-    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key = os.environ.get("AIPROXY_TOKEN") or os.environ.get("OPENAI_API_KEY")
     if not api_key:
-        raise HTTPException(status_code=500, detail="OpenAI API key not configured")
+        raise HTTPException(status_code=500, detail="API key not configured")
 
-    client = openai.OpenAI(api_key=api_key)
+    # Use AIProxy base URL
+    client = openai.OpenAI(
+        api_key=api_key,
+        base_url="https://aiproxy.sanand.co/openai/v1"
+    )
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4.1-mini",
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
                     "content": (
-                        "You are a sentiment analysis assistant. Analyze the sentiment of the given comment.\n"
-                        "Classify the sentiment as 'positive', 'negative', or 'neutral'.\n"
-                        "Assign a rating from 1 to 5 where:\n"
-                        "  5 = highly positive\n"
-                        "  4 = somewhat positive\n"
-                        "  3 = neutral\n"
-                        "  2 = somewhat negative\n"
-                        "  1 = highly negative\n"
-                        "The rating must be consistent with the sentiment:\n"
-                        "  - positive sentiment: rating 4 or 5\n"
-                        "  - neutral sentiment: rating 3\n"
-                        "  - negative sentiment: rating 1 or 2"
+                        "You are a precise sentiment analysis assistant. "
+                        "Analyze the sentiment of the given comment and return structured output.\n"
+                        "Rules:\n"
+                        "- sentiment must be exactly one of: 'positive', 'negative', 'neutral'\n"
+                        "- rating must be an integer 1-5 where:\n"
+                        "  * 5 = highly positive (e.g., 'amazing', 'excellent', 'love it')\n"
+                        "  * 4 = somewhat positive (e.g., 'good', 'nice', 'liked it')\n"
+                        "  * 3 = neutral (e.g., 'okay', 'average', 'it was fine')\n"
+                        "  * 2 = somewhat negative (e.g., 'bad', 'disappointing', 'not great')\n"
+                        "  * 1 = highly negative (e.g., 'terrible', 'hate it', 'awful')\n"
+                        "- positive sentiment -> rating 4 or 5\n"
+                        "- neutral sentiment -> rating 3\n"
+                        "- negative sentiment -> rating 1 or 2\n"
+                        "Be consistent and accurate."
                     )
                 },
                 {
                     "role": "user",
-                    "content": f"Analyze the sentiment of this comment: {request.comment}"
+                    "content": f"Analyze the sentiment of this comment: \"{request.comment}\""
                 }
             ],
             response_format=SENTIMENT_SCHEMA
         )
 
-        result = json.loads(response.choices[0].message.content)
+        content = response.choices[0].message.content
+        result = json.loads(content)
 
-        # Validate values
-        if result["sentiment"] not in ["positive", "negative", "neutral"]:
-            raise ValueError(f"Invalid sentiment value: {result['sentiment']}")
-        if not isinstance(result["rating"], int) or not (1 <= result["rating"] <= 5):
-            raise ValueError(f"Invalid rating value: {result['rating']}")
+        sentiment = result.get("sentiment")
+        rating = result.get("rating")
+
+        if sentiment not in ["positive", "negative", "neutral"]:
+            raise ValueError(f"Invalid sentiment value: {sentiment}")
+        if not isinstance(rating, int) or not (1 <= rating <= 5):
+            raise ValueError(f"Invalid rating value: {rating}")
 
         return JSONResponse(
-            content={"sentiment": result["sentiment"], "rating": result["rating"]},
+            content={"sentiment": sentiment, "rating": rating},
             media_type="application/json"
         )
 
-    except openai.APIError as e:
-        raise HTTPException(status_code=502, detail=f"OpenAI API error: {str(e)}")
+    except openai.APIConnectionError as e:
+        raise HTTPException(status_code=502, detail=f"Connection error: {str(e)}")
+    except openai.RateLimitError as e:
+        raise HTTPException(status_code=429, detail=f"Rate limit exceeded: {str(e)}")
+    except openai.APIStatusError as e:
+        raise HTTPException(status_code=502, detail=f"API error {e.status_code}: {str(e)}")
     except json.JSONDecodeError as e:
-        raise HTTPException(status_code=500, detail=f"Failed to parse API response: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to parse response: {str(e)}")
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
