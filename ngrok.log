@@ -1,0 +1,22 @@
+t=2026-02-24T16:58:09+0530 lvl=info msg="no configuration paths supplied"
+t=2026-02-24T16:58:09+0530 lvl=info msg="using configuration at default config path" path="/Users/jayashreem/Library/Application Support/ngrok/ngrok.yml"
+t=2026-02-24T16:58:09+0530 lvl=info msg="open config file" path="/Users/jayashreem/Library/Application Support/ngrok/ngrok.yml" err=nil
+t=2026-02-24T16:58:09+0530 lvl=info msg="FIPS 140 mode" enabled=false
+t=2026-02-24T16:58:10+0530 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+t=2026-02-24T16:58:10+0530 lvl=info msg="client session established" obj=tunnels.session
+t=2026-02-24T16:58:10+0530 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2026-02-24T16:58:10+0530 lvl=info msg="started tunnel" obj=tunnels name=command_line addr=http://localhost:8765 url=https://wilburn-jaunty-stuart.ngrok-free.dev
+t=2026-02-24T16:58:10+0530 lvl=info msg="update available" obj=updater
+t=2026-02-24T16:58:22+0530 lvl=info msg=start pg=/api/tunnels id=7e74c1d927e01a8e
+t=2026-02-24T16:58:22+0530 lvl=info msg=end pg=/api/tunnels id=7e74c1d927e01a8e status=200 dur=385.311µs
+t=2026-02-24T19:15:21+0530 lvl=info msg=start pg=/api/tunnels id=df67e3c84a62ac22
+t=2026-02-24T19:15:21+0530 lvl=info msg=end pg=/api/tunnels id=df67e3c84a62ac22 status=200 dur=721.17µs
+t=2026-02-24T19:15:33+0530 lvl=info msg="join connections" obj=join id=76066c14c548 l=127.0.0.1:8765 r=49.37.250.9:62044
+t=2026-02-24T19:15:36+0530 lvl=info msg="join connections" obj=join id=d0dcc72ee8bb l=127.0.0.1:8765 r=49.37.250.9:62051
+t=2026-02-24T19:15:40+0530 lvl=info msg="join connections" obj=join id=57afbaa8d038 l=127.0.0.1:8765 r=49.37.250.9:62055
+t=2026-02-24T19:16:37+0530 lvl=info msg="join connections" obj=join id=32fc1380a4ac l=127.0.0.1:8765 r=49.37.250.9:62149
+t=2026-02-24T19:16:40+0530 lvl=info msg="join connections" obj=join id=57dfa5eba475 l=127.0.0.1:8765 r=49.37.250.9:62157
+t=2026-02-24T19:16:44+0530 lvl=info msg="join connections" obj=join id=bb085861938e l=127.0.0.1:8765 r=49.37.250.9:62161
+t=2026-02-24T19:33:44+0530 lvl=info msg="received stop request" obj=app stopReq="{err:<nil> restart:false}"
+t=2026-02-24T19:33:44+0530 lvl=info msg="session closing" obj=tunnels.session err=nil
+t=2026-02-24T19:33:44+0530 lvl=info msg="accept failed" obj=tunnels.session obj=csess id=8633965e8ca7 err="reconnecting session closed"

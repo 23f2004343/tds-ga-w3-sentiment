@@ -1,0 +1,35 @@
+INFO:     Started server process [7403]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:54554 - "POST /code-interpreter HTTP/1.1" 200 OK
+Warning: GEMINI_API_KEY not found. Attempting basic regex fallback for grader.
+INFO:     127.0.0.1:54561 - "POST /code-interpreter HTTP/1.1" 200 OK
+INFO:     49.37.250.9:0 - "OPTIONS /code-interpreter HTTP/1.1" 200 OK
+Warning: GEMINI_API_KEY not found. Attempting basic regex fallback for grader.
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+Warning: GEMINI_API_KEY not found. Attempting basic regex fallback for grader.
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+Warning: GEMINI_API_KEY not found. Attempting basic regex fallback for grader.
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+Warning: GEMINI_API_KEY not found. Attempting basic regex fallback for grader.
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+INFO:     49.37.250.9:0 - "OPTIONS /code-interpreter HTTP/1.1" 200 OK
+Warning: GEMINI_API_KEY not found. Attempting basic regex fallback for grader.
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+Warning: GEMINI_API_KEY not found. Attempting basic regex fallback for grader.
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+Warning: GEMINI_API_KEY not found. Attempting basic regex fallback for grader.
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+Warning: GEMINI_API_KEY not found. Attempting basic regex fallback for grader.
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+INFO:     49.37.250.9:0 - "OPTIONS /code-interpreter HTTP/1.1" 200 OK
+Warning: GEMINI_API_KEY not found. Attempting basic regex fallback for grader.
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+Warning: GEMINI_API_KEY not found. Attempting basic regex fallback for grader.
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK
+INFO:     49.37.250.9:0 - "POST /code-interpreter HTTP/1.1" 200 OK

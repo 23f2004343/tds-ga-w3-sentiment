@@ -1,0 +1,5 @@
+INFO:     Started server process [97142]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8760 (Press CTRL+C to quit)
+INFO:     49.37.250.9:0 - "POST /comment HTTP/1.1" 502 Bad Gateway

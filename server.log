@@ -7,3 +7,7 @@ INFO:     49.37.250.9:0 - "POST /comment HTTP/1.1" 200 OK
 INFO:     49.37.250.9:0 - "POST /comment HTTP/1.1" 502 Bad Gateway
 INFO:     49.37.250.9:0 - "POST /comment HTTP/1.1" 200 OK
 INFO:     49.37.250.9:0 - "POST /comment HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [764]

@@ -1,0 +1,12 @@
+t=2026-02-24T19:34:02+0530 lvl=info msg="no configuration paths supplied"
+t=2026-02-24T19:34:02+0530 lvl=info msg="using configuration at default config path" path="/Users/jayashreem/Library/Application Support/ngrok/ngrok.yml"
+t=2026-02-24T19:34:02+0530 lvl=info msg="open config file" path="/Users/jayashreem/Library/Application Support/ngrok/ngrok.yml" err=nil
+t=2026-02-24T19:34:02+0530 lvl=info msg="FIPS 140 mode" enabled=false
+t=2026-02-24T19:34:02+0530 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+t=2026-02-24T19:34:02+0530 lvl=info msg="client session established" obj=tunnels.session
+t=2026-02-24T19:34:02+0530 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2026-02-24T19:34:02+0530 lvl=info msg="started tunnel" obj=tunnels name=command_line addr=http://localhost:8760 url=https://wilburn-jaunty-stuart.ngrok-free.dev
+t=2026-02-24T19:34:03+0530 lvl=info msg="update available" obj=updater
+t=2026-02-24T19:34:07+0530 lvl=info msg=start pg=/api/tunnels id=57febf46869a0771
+t=2026-02-24T19:34:07+0530 lvl=info msg=end pg=/api/tunnels id=57febf46869a0771 status=200 dur=299.505µs
+t=2026-02-24T19:34:34+0530 lvl=info msg="join connections" obj=join id=c047cdc73d2a l=127.0.0.1:8760 r=49.37.250.9:62774
