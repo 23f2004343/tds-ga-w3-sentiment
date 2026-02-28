@@ -224,19 +224,19 @@ def ask(request: AskRequest):
 # === `/execute` (from Q1) ===
 @app.get("/execute")
 def execute_query(q: str = Query(..., description="The query to process")):
-    match = re.search(r"What is the status of ticket (\d+)\?", q, re.IGNORECASE)
+    match = re.search(r"What is the status of ticket (\d+)", q, re.IGNORECASE)
     if match: return {"name": "get_ticket_status", "arguments": json.dumps({"ticket_id": int(match.group(1))})}
         
-    match = re.search(r"Schedule a meeting on ([\d-]+) at ([\d:]+) in (.*)\.", q, re.IGNORECASE)
+    match = re.search(r"Schedule a meeting on ([\d-]+) at ([\d:]+) in (.*?)\.?$", q, re.IGNORECASE)
     if match: return {"name": "schedule_meeting", "arguments": json.dumps({"date": match.group(1), "time": match.group(2), "meeting_room": match.group(3).strip()})}
         
-    match = re.search(r"Show my expense balance for employee (\d+)\.", q, re.IGNORECASE)
+    match = re.search(r"Show my expense balance for employee (\d+)", q, re.IGNORECASE)
     if match: return {"name": "get_expense_balance", "arguments": json.dumps({"employee_id": int(match.group(1))})}
         
-    match = re.search(r"Calculate performance bonus for employee (\d+) for (\d+)\.", q, re.IGNORECASE)
+    match = re.search(r"Calculate performance bonus for employee (\d+) for (\d+)", q, re.IGNORECASE)
     if match: return {"name": "calculate_performance_bonus", "arguments": json.dumps({"employee_id": int(match.group(1)), "current_year": int(match.group(2))})}
         
-    match = re.search(r"Report office issue (\d+) for the (.*) department\.", q, re.IGNORECASE)
+    match = re.search(r"Report office issue (\d+) for the (.*?)\s*department", q, re.IGNORECASE)
     if match: return {"name": "report_office_issue", "arguments": json.dumps({"issue_code": int(match.group(1)), "department": match.group(2).strip()})}
         
     return {"error": "No matching function found"}
@@ -265,24 +265,31 @@ async def code_interpreter(request: CodeRequest):
     
     if exec_result["success"]:
         return {"error": [], "result": exec_result["output"]}
-    
-    api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyDN8nCv_maQ3LbVWOyrO7r8U8yJe0zc5hE")
-    if not api_key:
+    if not AI_API_TOKEN:
         return {"error": [], "result": exec_result["output"]}
         
-    client = genai.Client(api_key=api_key)
-    prompt = f"Analyze this Python code and its error traceback.\nIdentify the line number(s) where the error occurred.\n\nCODE:\n{code}\n\nTRACEBACK:\n{exec_result['output']}\n\nReturn the line number(s) where the error is located."
+    prompt = f"Analyze this Python code and its error traceback.\nIdentify the line number(s) where the error occurred.\n\nCODE:\n{code}\n\nTRACEBACK:\n{exec_result['output']}\n\nReturn ONLY a JSON object like {{\"error_lines\": [x, y]}} capturing the line numbers of the error."
     try:
-        response = client.models.generate_content(
-            model='gemini-2.0-flash',
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema={"type": "OBJECT", "properties": {"error_lines": {"type": "ARRAY", "items": {"type": "INTEGER"}}}, "required": ["error_lines"]}
-            )
+        response = requests.post(
+            CHAT_URL,
+            headers={
+                "Authorization": f"Bearer {AI_API_TOKEN}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "gpt-4.1-mini",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.0
+            },
+            timeout=30
         )
-        data = json.loads(response.text)
-        error_lines = data.get("error_lines", [])
+        if response.status_code == 200:
+            raw = response.json()["choices"][0]["message"]["content"]
+            raw = raw.strip().replace("```json", "").replace("```", "")
+            data = json.loads(raw)
+            error_lines = data.get("error_lines", [])
+        else:
+            error_lines = []
     except Exception as e:
         print("AI Error:", e)
         error_lines = []
