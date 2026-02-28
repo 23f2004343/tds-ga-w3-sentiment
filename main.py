@@ -266,7 +266,7 @@ async def code_interpreter(request: CodeRequest):
     if exec_result["success"]:
         return {"error": [], "result": exec_result["output"]}
     
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyDN8nCv_maQ3LbVWOyrO7r8U8yJe0zc5hE")
     if not api_key:
         return {"error": [], "result": exec_result["output"]}
         
