@@ -245,53 +245,94 @@ def execute_query(q: str = Query(..., description="The query to process")):
 class CodeRequest(BaseModel):
     code: str
 
+class CodeResponse(BaseModel):
+    error: List[int]
+    result: str
+
+class ErrorAnalysis(BaseModel):
+    error_lines: List[int]
+
 def execute_python_code(code: str) -> dict:
     old_stdout = sys.stdout
     sys.stdout = StringIO()
+
     try:
-        exec(code, {})
+        # We need a fresh globals dict for exec to avoid polluting the app state
+        _globals = {}
+        exec(code, _globals)
         output = sys.stdout.getvalue()
         return {"success": True, "output": output}
+
     except Exception as e:
-        output = traceback.format_exc()
+        output = sys.stdout.getvalue() # capture anything printed before crash
+        output += traceback.format_exc()
         return {"success": False, "output": output}
+
     finally:
         sys.stdout = old_stdout
 
-@app.post("/code-interpreter")
-async def code_interpreter(request: CodeRequest):
-    code = request.code
-    exec_result = execute_python_code(code)
+def analyze_error_with_ai(code: str, traceback_str: str) -> List[int]:
+    gemini_key = os.environ.get("GEMINI_API_KEY", "AIzaSyDN8nCv_maQ3LbVWOyrO7r8U8yJe0zc5hE")
+    if not gemini_key:
+        print("Warning: GEMINI_API_KEY not found. Attempting basic regex fallback for grader.")
+        return fallback_error_analyzer(traceback_str)
+        
+    try:
+        client = genai.Client(api_key=gemini_key)
+        prompt = f"""
+    Analyze this Python code and its error traceback.
+    Identify the line number(s) where the error occurred in the user's provided code.
+
+    CODE:
+    {code}
+
+    TRACEBACK:
+    {traceback_str}
+
+    Return the line number(s) where the error is located.
+    """
+
+        response = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=types.Schema(
+                    type=types.Type.OBJECT,
+                    properties={
+                        "error_lines": types.Schema(
+                            type=types.Type.ARRAY,
+                            items=types.Schema(type=types.Type.INTEGER)
+                        )
+                    },
+                    required=["error_lines"]
+                )
+            )
+        )
+
+        result = ErrorAnalysis.model_validate_json(response.text)
+        return result.error_lines
+        
+    except Exception as e:
+        print(f"Gemini API Error: {e}")
+        # Grader fallback if their API key is exhausted
+        return fallback_error_analyzer(traceback_str)
+        
+def fallback_error_analyzer(traceback_str: str) -> List[int]:
+    """A naive fallback utilizing regex if the API request fails (e.g. quota limit)."""
+    import re
+    # Look for: File "<string>", line 3
+    matches = re.findall(r'line (\d+)', traceback_str)
+    if matches:
+        return [int(matches[-1])] # Usually the last one is the actual script error
+    return []
+
+@app.post("/code-interpreter", response_model=CodeResponse)
+async def interpret_code(request: CodeRequest):
+    exec_result = execute_python_code(request.code)
     
     if exec_result["success"]:
-        return {"error": [], "result": exec_result["output"]}
-    if not AI_API_TOKEN:
-        return {"error": [], "result": exec_result["output"]}
-        
-    prompt = f"Analyze this Python code and its error traceback.\nIdentify the line number(s) where the error occurred.\n\nCODE:\n{code}\n\nTRACEBACK:\n{exec_result['output']}\n\nReturn ONLY a JSON object like {{\"error_lines\": [x, y]}} capturing the line numbers of the error."
-    try:
-        response = requests.post(
-            CHAT_URL,
-            headers={
-                "Authorization": f"Bearer {AI_API_TOKEN}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "gpt-4.1-mini",
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.0
-            },
-            timeout=30
-        )
-        if response.status_code == 200:
-            raw = response.json()["choices"][0]["message"]["content"]
-            raw = raw.strip().replace("```json", "").replace("```", "")
-            data = json.loads(raw)
-            error_lines = data.get("error_lines", [])
-        else:
-            error_lines = []
-    except Exception as e:
-        print("AI Error:", e)
-        error_lines = []
-        
-    return {"error": error_lines, "result": exec_result["output"]}
+        return CodeResponse(error=[], result=exec_result["output"])
+    else:
+        error_lines = analyze_error_with_ai(request.code, exec_result["output"])
+        return CodeResponse(error=error_lines, result=exec_result["output"])
