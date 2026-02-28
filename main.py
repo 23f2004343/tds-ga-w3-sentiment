@@ -294,3 +294,73 @@ def execute_query(q: str = Query(..., description="The query to process")):
         
     # Fallback
     return {"error": "No matching function found"}
+from typing import List
+
+class CodeRequest(BaseModel):
+    code: str
+
+def execute_python_code(code: str) -> dict:
+    import sys
+    from io import StringIO
+    import traceback
+
+    old_stdout = sys.stdout
+    sys.stdout = StringIO()
+
+    try:
+        exec(code, {})
+        output = sys.stdout.getvalue()
+        return {"success": True, "output": output}
+    except Exception as e:
+        output = traceback.format_exc()
+        return {"success": False, "output": output}
+    finally:
+        sys.stdout = old_stdout
+
+@app.post("/code-interpreter")
+async def code_interpreter(request: CodeRequest):
+    code = request.code
+    exec_result = execute_python_code(code)
+    
+    if exec_result["success"]:
+        return {"error": [], "result": exec_result["output"]}
+    
+    api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyDN8nCv_maQ3LbVWOyrO7r8U8yJe0zc5hE")
+    client = genai.Client(api_key=api_key)
+    prompt = f"""
+Analyze this Python code and its error traceback.
+Identify the line number(s) where the error occurred.
+
+CODE:
+{code}
+
+TRACEBACK:
+{exec_result['output']}
+
+Return the line number(s) where the error is located.
+"""
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.0-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema={
+                    "type": "OBJECT",
+                    "properties": {
+                        "error_lines": {
+                            "type": "ARRAY",
+                            "items": {"type": "INTEGER"}
+                        }
+                    },
+                    "required": ["error_lines"]
+                }
+            )
+        )
+        data = json.loads(response.text)
+        error_lines = data.get("error_lines", [])
+    except Exception as e:
+        print("AI Error:", e)
+        error_lines = []
+        
+    return {"error": error_lines, "result": exec_result["output"]}
