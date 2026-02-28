@@ -1,9 +1,6 @@
 name: QA Automate Playwright
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 jobs:
   scrape-and-sum:
