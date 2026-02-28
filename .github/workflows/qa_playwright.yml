@@ -8,6 +8,8 @@ on:
 jobs:
   scrape-and-sum:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -25,3 +27,11 @@ jobs:
 
       - name: Run script for 23f2004343@ds.study.iitm.ac.in
         run: python qa_solve.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add .
+          git commit -m "Automated commit from GitHub Actions" || echo "No changes to commit"
+          git push
