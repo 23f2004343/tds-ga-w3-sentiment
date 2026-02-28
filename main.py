@@ -149,9 +149,14 @@ class AskResponse(BaseModel):
     video_url: str
     topic: str
 
+
+@app.get("/ask")
+async def ask_get():
+    return {"message": "Use POST /ask for queries"}
+
 @app.post("/ask", response_model=AskResponse)
 async def ask_endpoint(request: AskRequest):
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyDN8nCv_maQ3LbVWOyrO7r8U8yJe0zc5hE")
     if not api_key:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY not set")
     
