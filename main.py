@@ -151,10 +151,12 @@ class AskResponse(BaseModel):
 
 
 @app.get("/ask")
+@app.get("/ask/")
 async def ask_get():
     return {"message": "Use POST /ask for queries"}
 
 @app.post("/ask", response_model=AskResponse)
+@app.post("/ask/", response_model=AskResponse)
 async def ask_endpoint(request: AskRequest):
     api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyDN8nCv_maQ3LbVWOyrO7r8U8yJe0zc5hE")
     if not api_key:
