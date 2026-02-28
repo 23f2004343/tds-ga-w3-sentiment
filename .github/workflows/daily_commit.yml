@@ -1,0 +1,27 @@
+name: Daily Automated Commit
+
+on:
+  schedule:
+    - cron: '30 4 * * *'
+  workflow_dispatch:
+
+jobs:
+  commit-job:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run script for 23f2004343@ds.study.iitm.ac.in
+        run: |
+          echo "Automated run at $(date)" >> timestamp.log
+          
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add timestamp.log
+          git commit -m "Automated daily commit" || echo "No changes to commit"
+          git push
